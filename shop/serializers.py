@@ -14,6 +14,21 @@ class UserSerializer(ModelSerializer):
             path = '/static/%s' % name
         return request.build_absolute_uri(path)
 
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "email",
+                  "username", "password", "date_joined", "avatar"]
+        extra_kwargs = {
+            'password': {'write_only': 'true'}
+        }
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
+
 
 class CustomerSerializer(ModelSerializer):
 
