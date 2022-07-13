@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u_bxy*7u8hbwx_k+gykn&zt%#j0+pgd4-@bm9kl7*0$&5)7-w&
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = ['nbt17397.pythonanywhere.com']
 
 # Application definition
 
@@ -106,6 +106,16 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'nbt17397$shopdb',
+#         'USER': 'nbt17397',
+#         'PASSWORD': '285495659tu',
+#         'HOST': 'nbt17397.mysql.pythonanywhere-services.com'
+#     }
+# }
+
 AUTH_USER_MODEL = 'shop.User'
 
 
@@ -150,4 +160,3 @@ MEDIA_ROOT = '%s/shop/static' % BASE_DIR
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# ALLOWED_HOSTS = ['nbt17397.pythonanywhere.com']
