@@ -150,4 +150,4 @@ MEDIA_ROOT = '%s/shop/static' % BASE_DIR
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-ALLOWED_HOSTS = ['nbt17397.pythonanywhere.com']
+# ALLOWED_HOSTS = ['nbt17397.pythonanywhere.com']
