@@ -3,7 +3,7 @@ from .models import Category, Customer, Employee, Order, OrderDetail, Product, S
 
 
 class UserSerializer(ModelSerializer):
-    avatar = SerializerMethodField()
+    avatar = SerializerMethodField
 
     def get_avatar(self, user):
         request = self.context['request']
@@ -39,7 +39,7 @@ class CustomerSerializer(ModelSerializer):
 
 
 class EmployeeSerializer(ModelSerializer):
-    photo = SerializerMethodField()
+    photo = SerializerMethodField
 
     def get_photo(self, employee):
         request = self.context['request']
@@ -53,7 +53,7 @@ class EmployeeSerializer(ModelSerializer):
     class Meta:
         model = Employee
         fields = ["id", "last_name", "first_name",
-                  "birth_day", "photo", "notes", ]
+                  "birth_day", "notes", "photo"]
 
 
 class CategorySerializer(ModelSerializer):
