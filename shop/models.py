@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    avatar = models.ImageField(upload_to='uploads/%Y/%m')
+    avatar = models.ImageField(upload_to='uploads/%Y/%m', default=None)
 
 
 class ItemBase(models.Model):

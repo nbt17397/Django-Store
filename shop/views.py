@@ -1,5 +1,3 @@
-import django
-from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
@@ -33,6 +31,11 @@ class UserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIView
     @action(methods=['get'], detail=False, url_path='current-user')
     def get_current_user(seft, request):
         return Response(seft.serializer_class(request.user).data, status=status.HTTP_200_OK)
+
+    def list(self, request):
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(data={"listUsers": serializer.data})
 
 
 class AuthInfo(APIView):

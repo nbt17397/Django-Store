@@ -1,18 +1,17 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import Category, Customer, Employee, Order, OrderDetail, Product, Shipper, Supplier, User
 
-
 class UserSerializer(ModelSerializer):
-    avatar = SerializerMethodField
+    # avatar = SerializerMethodField()
 
-    def get_avatar(self, user):
-        request = self.context['request']
-        name = user.avatar.name
-        if name.startswith("static/"):
-            path = '/%s' % name
-        else:
-            path = '/static/%s' % name
-        return request.build_absolute_uri(path)
+    # def get_avatar(self, user):
+    #     request = self.context['request']
+    #     name = user.avatar.name
+    #     if name.startswith("static/"):
+    #         path = '/%s' % name
+    #     else:
+    #         path = '/static/%s' % name
+    #     return name
 
     class Meta:
         model = User
@@ -39,7 +38,7 @@ class CustomerSerializer(ModelSerializer):
 
 
 class EmployeeSerializer(ModelSerializer):
-    photo = SerializerMethodField
+    photo = SerializerMethodField()
 
     def get_photo(self, employee):
         request = self.context['request']
