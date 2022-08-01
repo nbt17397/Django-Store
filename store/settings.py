@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'rest_framework',
     'oauth2_provider',
-    'drf_yasg',
+    # 'drf_yasg',
     'knox',
 ]
 
