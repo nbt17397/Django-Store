@@ -8,7 +8,7 @@ class User(AbstractUser):
         unique_together = ['email', 'department_id']
 
     avatar = models.ImageField(
-        upload_to='uploads/uploads/%Y/%m', default=None)
+        upload_to='project/uploads/%Y/%m', default=None)
     department_id = models.ForeignKey(
         'Department', on_delete=models.SET_NULL, null=True)
     manager_id = models.ForeignKey(
