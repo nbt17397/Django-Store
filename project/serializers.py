@@ -1,6 +1,5 @@
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from .models import AdditionalWork, BoxChat, Department, Document, Message, Position, Process, Project, Stage, Step, User, Category, Work
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
+from .models import AdditionalWork, BoxChat, Department, Document, Message, Notification, Position, Process, Project, Stage, Step, User, Category, Work
 
 
 class UserSerializer(ModelSerializer):
@@ -44,7 +43,7 @@ class StageSerializer(ModelSerializer):
 
     class Meta:
         model = Stage
-        fields = ["id", "stage_name", "pos", "project"]
+        fields = ["id", "stage_name", "pos", "project", "categories"]
 
 
 class CategorySerializer(ModelSerializer):
@@ -54,6 +53,7 @@ class CategorySerializer(ModelSerializer):
         model = Category
         fields = ["id", "category_name", "start_date",
                   "end_date", "complete_date", "cost", "desc", "stage"]
+
 
 
 class PositionSerializer(ModelSerializer):
@@ -83,14 +83,6 @@ class MessageSerializer(ModelSerializer):
         fields = ["id", "creator", "box_chat"]
 
 
-class ProcessSerializer(ModelSerializer):
-    creator = UserSerializer
-
-    class Meta:
-        model = Process
-        fields = ["id", "process_name", "creator", "desc"]
-
-
 class StepSerializer(ModelSerializer):
     user_accept = UserSerializer
     users_notification = UserSerializer(
@@ -100,6 +92,14 @@ class StepSerializer(ModelSerializer):
         model = Step
         fields = ["id", "step_name", "desc", "user_accept",
                   "users_notification", "status", "isAccept", "process"]
+
+
+class ProcessSerializer(ModelSerializer):
+    creator = UserSerializer
+
+    class Meta:
+        model = Process
+        fields = ["id", "process_name", "creator", "desc", "steps"]
 
 
 class WorkSerializer(ModelSerializer):
@@ -115,13 +115,14 @@ class WorkSerializer(ModelSerializer):
 
 class AdditionalWorkSerializer(ModelSerializer):
     user_accept = UserSerializer
-    users_notification = UserSerializer(many=True, required=False)
+    user_notification = UserSerializer(
+        many=True, required=False)
     work = WorkSerializer
 
     class Meta:
         model = AdditionalWork
         fields = ["id", "additional_name", "desc", "user_accept",
-                  "status", "work", "users_notification"]
+                  "status", "work", "user_notification"]
 
 
 class DocumentSerializer(ModelSerializer):
@@ -131,14 +132,9 @@ class DocumentSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+class NotificationSerializer(ModelSerializer):
 
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['username'] = user.username
-        token['first_name'] = user.first_name
-        token['last_name'] = user.last_name
-        token['device_token'] = user.device_token
-        token['avatar'] = str(user.avatar)
-        return token
+    class Meta:
+        model = Notification
+        fields = ["id", "content", "created_date", "type",
+                  "work", "category", "project", "creator"]

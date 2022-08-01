@@ -39,7 +39,7 @@ class Employee(ItemBase):
     birth_day = models.DateTimeField()
     photo = models.ImageField(upload_to='uploads/%Y/%m', default=None)
     notes = models.TextField(null=True, blank=True)
-
+    
     def __str__(self) -> str:
         return self.last_name
 

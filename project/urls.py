@@ -17,10 +17,12 @@ router.register('works', views.WorkViewSet, "work")
 router.register('additionalWorks',
                 views.AdditionalWorkViewSet, "additionalWork")
 router.register('documents', views.DocumentViewSet, "document")
+router.register('notifications', views.NotificationViewSet, 'notification')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('oauth2_info/', views.AuthInfo.as_view()),
-    path('api/login/', views.MyTokenObtainPairView.as_view(), name='login'),
+    path('api/login/', views.login_api),
+    path('api/user/', views.get_user_data)
 ]

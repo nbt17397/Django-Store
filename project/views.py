@@ -1,9 +1,10 @@
+from datetime import datetime
 from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 from rest_framework import viewsets, permissions, status, generics
-from .models import (AdditionalWork, BoxChat, Category, Department, Document, Message, Position, Process, Project, Stage, Step, User, Work
+from .models import (AdditionalWork, BoxChat, Category, Department, Document, Message, Notification, Position, Process, Project, Stage, Step, User, Work
                      )
 from .serializers import (
     AdditionalWorkSerializer,
@@ -12,7 +13,7 @@ from .serializers import (
     DepartmentSerializer,
     DocumentSerializer,
     MessageSerializer,
-    MyTokenObtainPairSerializer,
+    NotificationSerializer,
     PositionSerializer,
     ProcessSerializer,
     ProjectSerializer,
@@ -22,9 +23,46 @@ from .serializers import (
     WorkSerializer)
 from django.conf import settings
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.core.mail import BadHeaderError, send_mail
-from django.http import HttpResponse, HttpResponseRedirect
+# from django.core.mail import BadHeaderError, send_mail
+# from django.http import HttpResponse, HttpResponseRedirect
+from rest_framework.decorators import api_view
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from knox.auth import AuthToken
+
+
+@api_view(['POST'])
+def login_api(request):
+    serializer = AuthTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.validated_data['user']
+    _, token = AuthToken.objects.create(user)
+
+    device_token = request.data.get('device_token')
+    if device_token is not None:
+        user.device_token = device_token
+        user.save()
+    return Response({
+        'user_info': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'device_token': user.device_token,
+        },
+        'token': token
+    })
+
+
+@api_view(['GET'])
+def get_user_data(request):
+    user = request.user
+
+    if user is not None:
+        return Response(data={'user_info': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }})
+    return Response(data={'error': 'not authenticated'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.RetrieveAPIView):
@@ -33,7 +71,7 @@ class UserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIView
     parser_classes = [MultiPartParser]
 
     def get_permissions(self):
-        if self.action == 'get_current_user':
+        if self.action == 'get_current_user' or 'list':
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
@@ -52,14 +90,16 @@ class AuthInfo(APIView):
         return Response(settings.OAUTH2_INFO, status=status.HTTP_200_OK)
 
 
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
-
-
 class DepartmentViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.RetrieveAPIView, generics.DestroyAPIView):
     queryset = Department.objects.filter(active=True)
     serializer_class = DepartmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request):
+        departments = Department.objects.filter(active=True)
+        serializer = DepartmentSerializer(departments, many=True)
+
+        return Response(data={"listDepartments": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ProjectViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.RetrieveAPIView, generics.DestroyAPIView):
@@ -78,6 +118,12 @@ class ProjectViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAPI
 
         serializer = ProjectSerializer(projects, many=True)
         return Response(data={"listProjects": serializer.data}, status=status.HTTP_200_OK)
+
+    @action(methods=['get'], detail=True, url_path='stages')
+    def get_stages(self, request, pk):
+        stages = self.get_object().stages.filter(active=True)
+
+        return Response(data={"stages": StageSerializer(stages, many=True).data}, status=status.HTTP_200_OK)
 
     @action(methods=['get'], detail=True, url_path='categories')
     def get_categories(self, request, pk):
@@ -128,9 +174,31 @@ class CategoryViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAP
         stage_id = request.query_params.get('stage_id')
         if stage_id is not None:
             categories = categories.filter(stage_id=stage_id)
-        serializer = CategorySerializer(categories, many=True)
 
+        serializer = CategorySerializer(categories, many=True)
         return Response(data={"listCategories": serializer.data}, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        try:
+
+            return super().create(request, *args, **kwargs)
+        finally:
+            Notification.objects.create(content=request.user.last_name + ' tạo hạng mục: ' + request.data.get('category_name'), project=request.data.get(
+                'project'), category=request.data.get('category'), type=0, creator=request.user)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        finally:
+            Notification.objects.create(content=request.user.last_name + ' Cập nhật hạng mục: ' + request.data.get('category_name'), project=request.data.get(
+                'project'), category=request.data.get('category'), type=0, creator=request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        finally:
+            Notification.objects.create(content=request.user.last_name + ' Xóa hạng mục: ', project=request.data.get(
+                'project'), category=request.data.get('category'), type=0, creator=request.user)
 
 
 class PositionViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.RetrieveAPIView, generics.DestroyAPIView):
@@ -278,3 +346,16 @@ class DocumentViewSet(viewsets.ViewSet,  generics.ListAPIView, generics.CreateAP
 
         serializer = DocumentSerializer(documents, many=True)
         return Response(data={"listDocuments": serializer.data}, status=status.HTTP_200_OK)
+
+
+class NotificationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.RetrieveAPIView):
+    queryset = Notification.objects.filter(active=True)
+    serializer_class = NotificationSerializer
+
+    def list(self, request):
+        notifications = Notification.objects.filter(active=True)
+        project_id = request.query_params.get('project_id')
+        if project_id is not None:
+            notifications = notifications.filter(project_id=project_id)
+
+        return Response(data={"listNotifications": NotificationSerializer(notifications, many=True).data}, status=status.HTTP_200_OK)

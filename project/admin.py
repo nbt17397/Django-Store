@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AdditionalWork, BoxChat, Category, Department, Document, Message, Position, Process, Project, Stage, Step, User, Work
+from .models import AdditionalWork, BoxChat, Category, Department, Document, Message, Notification, Position, Process, Project, Stage, Step, User, Work
 
 admin.site.register(User)
 admin.site.register(Department)
@@ -14,3 +14,4 @@ admin.site.register(Process)
 admin.site.register(Work)
 admin.site.register(AdditionalWork)
 admin.site.register(Document)
+admin.site.register(Notification)

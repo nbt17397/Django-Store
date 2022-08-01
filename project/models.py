@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.forms import IntegerField
 
 
 class User(AbstractUser):
@@ -15,6 +16,9 @@ class User(AbstractUser):
     address = models.CharField(max_length=200, null=True)
     isPM = models.BooleanField(default=True)
     device_token = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.first_name + ' ' + self.last_name
 
 
 class ItemBase(models.Model):
@@ -191,3 +195,24 @@ class Document(ItemBase):
 
     def __str__(self) -> str:
         return self.document_name
+
+
+class Notification(ItemBase):
+
+    CREATE_CATE, COMPLETED_CATE, CREATE_WORK, COMPLETED_WORK = range(4)
+
+    ACTIONS = [
+        (CREATE_CATE, 'create_cate'),
+        (COMPLETED_CATE, 'completed_cate'),
+        (CREATE_WORK, 'create_work'),
+        (COMPLETED_WORK, 'completed_work')
+    ]
+
+    content = models.CharField(max_length=200, null=False)
+    work = models.ForeignKey(Work, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+    type = models.PositiveSmallIntegerField(
+        choices=ACTIONS, default=CREATE_CATE)
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
